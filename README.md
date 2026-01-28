@@ -118,3 +118,6 @@ Passing a lambda for subscribing will work, but you won't be able to unsubscribe
   event.unsubscribe(sender -> { /* Same somehting */ }); // WILL NOT WORK!!!
 ```
 
+
+### License
+MIT License

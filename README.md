@@ -9,6 +9,25 @@ It's a C# like event system for java. You can:
 
 ...events.
 
+### Maven
+```xml
+<repositories>
+	<repository>
+		<id>jitpack.io</id>
+		<url>https://jitpack.io</url>
+	</repository>
+</repositories>
+```
+```xml
+<dependencies>
+	<dependency>
+		<groupId>com.github.peterzagyvai</groupId>
+		<artifactId>jevent</artifactId>
+		<version>v1.1.0</version>
+	</dependency>
+</dependencies>
+```
+
 ### Event / P(arameterized)Event
 These classes make it possible to `.subscribe()` with methods or with functional interfaces.
 After subscribing your event will run these methods when the `.invoke()` method is called.

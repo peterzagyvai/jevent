@@ -9,48 +9,112 @@ It's a C# like event system for java. You can:
 
 ...events.
 
-## Parameterized / Parameterless
-There are two systems that are **incompatible** with each other by design.
-One of them is the parameterless classes (`Callback`, `Event`, `Publisher`) and parameterized (`ParameterizedCallback<Args>`, `ParameterizedEvent<Args>`, `ParameterizedPublisher<Args>`) which takes an argument.
+### Event / P(arameterized)Event
+These classes make it possible to `.subscribe()` with methods or with functional interfaces.
+After subscribing your event will run these methods when the `.invoke()` method is called.
+As parameters, it takes the sender `Object` and a generic `Args`.
+After unsubscribing, the invoke method won't call the callback.
 
-## [Parameterized]Publisher
-These interfaces enforce you to return an `UninvokableEvent` to other objects with the `getEvent()` method.
-These events can't be invoked instead they will throw an exception so other objects can't invoke it.
+### UninvokableEvents
+In C# your events can't be invoked from other classes but with the simple `Event` and `PEvent` classes it's still possible.
+To pass your event to other you should use the `.getUninvokalbe()` method which throws an `Uninvokable(P)EventException` when invoked.
 
-## Event / Callback
-These classes make possible to invoke and run the methods (`Callback`) that were subscribed to the event.
-First you have to subscribe to the `Event` with a `Callback`
 ```java
-      Event event = new Event();
-      Callback callback = Callback.create(() -> { 
-        /* Whatever you need */
-        System.out.println("Hello JEVENT");
-      });
-      event.subscribe(callback);
-```
-The subscribe can happen in other classes so it's recommended to get the event with the `Publisher`'s `getEvent()` method.
-After you subscribed the event can be invoked (unlike in C# you don't need to check if the event is null because on initialization it will have an empty list of the callbacks).
-If you call the `invoke()` on an UninvokableEvent then it will throw an exception. 
-```java
-    event.invoke(); // Prints "Hello JEVENT"
-```
-Also if you don't need to invoke your method you can also unsubscribe from the event with the `unsubscribe()` method.
-```java
-    event.unsubscribe(callback);
+class EventProvider {
+    private final Event event = new Event();
+
+    public Event.UninvokableEvent getEvent() {
+        return event.getUninvokable();
+    }
+}
+
+class OtherClass {
+    private final EventProvider eventProvider = new EventProvider();
+	
+    ...
+  
+    eventProvider.getEvent().invoke();  // Throws execption;
+}
 ```
 
-## Parameterized versions
-Very similar to the parameterless version you can invoke, subscribe unsubscribe to events but you can also pass parameters to the invoked methods.
+#### Event example
+```java
+    Event event = new Event();
+
+    Consumer<Object> callback = sender -> {
+	  System.out.println("Callback invoked");		
+    };
+		
+    event.subscribe(callback);
+		
+    event.invoke(this); // Prints: "Callback invoked"
+```
 
 ```java
-    ParameterizedEvent<String> event = new ParameterizedEvent<>();
-    ParamterizedCallback<String> callback = ParameterizedCallback.create(messge -> {
-        System.out.printf("Message in callback: %s\n", message);		
-    });
+    private void onEventCalled(Object sender) {
+      System.out.println("Method invoked");
+    }
 		
     ...
 
-    event.invoke("Hello JEVENT"); // Prints: "Message in callback: Hello JEVENT"
+    Event event = new Event();
+
+    event.subscribe(this::onEventCalled);
+		
+    event.invoke(null); // Prints: "Method invoked"
 ```
 
+#### PEvent example
+
+```java
+    PEvent<String> event = new PEvent<>();
+		
+    BiConsumer<Object, String> callback = (sender, args) -> {
+      System.out.printf("Hello %s", args);
+    };
+		
+    event.subscribe(callback);
+		
+    event.invoke(this, "PEvent"); // Prints: "Hello PEvent"
+```
+
+```java
+  import dev.angle.jevent.event.PEvent;
+  
+  public static final class CustomEventArgs {
+		public int num1;
+		public int num2;
+		
+		// Getters
+  }
+
+  private int sum;
+  private void onAddEvent(Object sender, CustomEventArgs args) {
+      sum = args.getNum1() + args.getNum2();
+  }
+
+  ...
+
+  PEvent<CustomEventArgs> addEvent = new PEvent<>();
+
+  addEvent.subscribe(this::onAddEvent);
+
+  addEvent.invoke(
+        null,
+        new CustomEventArgs(10,20)
+  );
+
+  System.out.printf("Sum: %d\n", sum); // Prints: "Sum: 30"
+```
+
+
+#### Unsubscribe
+The `.unsubscribe()` method takes a method or a functional interface as a reference so it's necessary to have that reference.
+Passing a lambda for subscribing will work, but you won't be able to unsubscribe from the event.
+```java
+  Event event = new Event();
+
+  event.subscribe(sender -> { /* Do something */ });
+  event.unsubscribe(sender -> { /* Same somehting */ }); // WILL NOT WORK!!!
+```
 

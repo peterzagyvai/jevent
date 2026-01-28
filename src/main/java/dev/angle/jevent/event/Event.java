@@ -1,50 +1,72 @@
 package dev.angle.jevent.event;
 
 
-import dev.angle.jevent.callback.Callback;
-import dev.angle.jevent.exception.InvokedUninvokableException;
+import dev.angle.jevent.exception.UninvokableEventException;
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
 
+/**
+ * <p>Callback methods can subscribe and unsubscribe to an {@code Event} object</p>
+ * <p>Subscribed callbacks will be executed when the {@code invoke()} method is called</p>
+ */
 public sealed class Event permits Event.UninvokableEvent {
+
+	/**
+	 * Uninvokable event's throw an {@code UninvokableEventException} when the {@code invoke()} is called
+	 */
 	@RequiredArgsConstructor
 	public static final class UninvokableEvent extends Event {
 		private final Event original;
 
 		@Override
-		public void unsubscribe(Callback callback) {
+		public void unsubscribe(Consumer<Object> callback) {
 			original.unsubscribe(callback);
 		}
 
 		@Override
-		public void subscribe(Callback callback) {
+		public void subscribe(Consumer<Object> callback) {
 			original.subscribe(callback);
 		}
 
 		@Override
-		public void invoke() {
-			throw new InvokedUninvokableException("Invoked uninvokable event", this);
+		public void invoke(Object sender) {
+			throw new UninvokableEventException("Invoked uninvokable event", this, sender);
 		}
 	}
 
-	private final List<Callback> callbacks = new ArrayList<>();
+	private final Set<Consumer<Object>> callbacks = new HashSet<>();
 
-	public void invoke() {
-		callbacks.forEach(
-				Callback::run
-		);
+	/**
+	 * Will call every subscribed event and pass the {@code sender} as parameter.
+	 * @param sender The object that calls the invoke event
+	 */
+	public void invoke(Object sender) {
+		callbacks.forEach(callback -> callback.accept(sender));
 	}
 
-	public void subscribe(Callback callback) {
+	/**
+	 * Subscribed callbacks will be executed when {@code this} event is invoked.
+	 * @param callback the callback that will be subscribed
+	 */
+	public void subscribe(Consumer<Object> callback) {
 		callbacks.add(callback);
 	}
 
-	public void unsubscribe(Callback callback) {
+	/**
+	 * Unsubscribes an already subscribed {@code Callback}
+	 * @param callback will be unsubscribed;
+	 */
+	public void unsubscribe(Consumer<Object> callback) {
 		callbacks.remove(callback);
 	}
 
+	/**
+	 * Returns an {@code UninvokableEvent} that can be used to subscribe to or unsubscribe
+	 * @return {@code UninvokableEvent} object
+	 */
 	public final Event.UninvokableEvent getUninvokable() {
 		return new UninvokableEvent(this);
 	}

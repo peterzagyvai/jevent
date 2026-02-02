@@ -23,7 +23,7 @@ It's a C# like event system for java. You can:
 	<dependency>
 		<groupId>com.github.peterzagyvai</groupId>
 		<artifactId>jevent</artifactId>
-		<version>v1.1.0</version>
+		<version>v1.2.0</version>
 	</dependency>
 </dependencies>
 ```

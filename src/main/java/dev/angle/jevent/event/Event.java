@@ -2,6 +2,8 @@ package dev.angle.jevent.event;
 
 
 import dev.angle.jevent.exception.UninvokableEventException;
+import dev.angle.jevent.invokable.InvokableEvent;
+import dev.angle.jevent.listener.EventListener;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashSet;
@@ -12,7 +14,7 @@ import java.util.function.Consumer;
  * <p>Callback methods can subscribe and unsubscribe to an {@code Event} object</p>
  * <p>Subscribed callbacks will be executed when the {@code invoke()} method is called</p>
  */
-public sealed class Event permits Event.UninvokableEvent {
+public sealed class Event implements EventListener, InvokableEvent permits Event.UninvokableEvent {
 
 	/**
 	 * Uninvokable event's throw an {@code UninvokableEventException} when the {@code invoke()} is called
@@ -63,10 +65,21 @@ public sealed class Event permits Event.UninvokableEvent {
 		callbacks.remove(callback);
 	}
 
+
+	/**
+	 * Returns an Uninvokable  equivalent of {@code this} event;
+	 * @return Uninvokable {@code EventListener} equivalent of {@code this} event
+	 */
+	public EventListener getEventListener() {
+		return new UninvokableEvent(this);
+	}
+
 	/**
 	 * Returns an {@code UninvokableEvent} that can be used to subscribe to or unsubscribe
+	 * <p>Deprecated! Use {@code getEventListener()}</p>
 	 * @return {@code UninvokableEvent} object
 	 */
+	@Deprecated(since = "v1.2.0")
 	public final Event.UninvokableEvent getUninvokable() {
 		return new UninvokableEvent(this);
 	}

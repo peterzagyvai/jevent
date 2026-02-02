@@ -1,6 +1,8 @@
 package dev.angle.jevent.event;
 
 import dev.angle.jevent.exception.UninvokablePEventException;
+import dev.angle.jevent.invokable.InvokablePEvent;
+import dev.angle.jevent.listener.PEventListener;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashSet;
@@ -12,7 +14,7 @@ import java.util.function.BiConsumer;
  * <p>Subscribed callbacks will be executed when the {@code invoke()} method is called</p>
  * @param <Args> the type of the arguments
  */
-public sealed class PEvent<Args> permits PEvent.UninvokableEvent {
+public sealed class PEvent<Args> implements PEventListener<Args>, InvokablePEvent<Args> permits PEvent.UninvokableEvent {
 	@RequiredArgsConstructor
 	public static final class UninvokableEvent<Args> extends PEvent<Args> {
 		private final PEvent<Args> original;
@@ -65,9 +67,19 @@ public sealed class PEvent<Args> permits PEvent.UninvokableEvent {
 	}
 
 	/**
+	 * Returns an Uninvokable  equivalent of {@code this} event;
+	 * @return Uninvokable {@code EventListener} equivalent of {@code this} event
+	 */
+	public PEventListener<Args> getEventListener() {
+		return new UninvokableEvent<>(this);
+	}
+
+	/**
 	 * Returns an {@code UninvokableEvent} that can be used to subscribe to or unsubscribe
+	 * <p>Deprecated! Use {@code getEventListener()}</p>
 	 * @return {@code UninvokableEvent} object
 	 */
+	@Deprecated(since = "v1.2.0")
 	public final PEvent.UninvokableEvent<Args> getUninvokable() {
 		return new PEvent.UninvokableEvent<>(this);
 	}

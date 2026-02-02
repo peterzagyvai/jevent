@@ -1,5 +1,6 @@
 import dev.angle.jevent.event.Event;
 import dev.angle.jevent.exception.UninvokableEventException;
+import dev.angle.jevent.listener.EventListener;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -159,6 +160,18 @@ public class EventTests {
 		assertThrows(
 				UninvokableEventException.class,
 				() -> uninvokableEvent.invoke(this));
+	}
+
+
+	@Test
+	void when_eventListenerIsCastedToEvent_then_invokingThrowsException() {
+		final EventListener listener = event.getEventListener();
+
+		final Event evt = (Event) listener;
+
+		assertThrows(
+				UninvokableEventException.class,
+				() -> evt.invoke(this));
 	}
 
 

@@ -1,5 +1,6 @@
 import dev.angle.jevent.event.PEvent;
 import dev.angle.jevent.exception.UninvokablePEventException;
+import dev.angle.jevent.listener.PEventListener;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -161,6 +162,17 @@ public class PEventTests {
 				() -> uninvokableEvent.invoke(this, 1));
 	}
 
+
+	@Test
+	void when_eventListenerIsCastedToEvent_then_invokingThrowsException() {
+		final PEventListener<Integer> listener = event.getEventListener();
+
+		final PEvent<Integer> evt = (PEvent<Integer>) listener;
+
+		assertThrows(
+				UninvokablePEventException.class,
+				() -> evt.invoke(this, 1));
+	}
 
 
 	private void setActualToExpected(Object sender, Integer num) {
